@@ -93,3 +93,21 @@ bar (contrast, keyboard focus, reduced motion, responsive layouts) on every page
 without being asked.
 
 Requires Python 3 — already installed on most computers.
+
+## The 21st design helper (optional)
+
+This project is set up to connect to 21st.dev, which gives Claude a library of
+ready-made page and component ideas to pull from.
+
+It needs one thing from you: a key from https://21st.dev. Once you have it, put
+it in your terminal like this, then start Claude:
+
+```bash
+export API_KEY_21ST="paste-your-key-here"
+```
+
+The first time you start Claude in this folder it will ask whether to trust the
+21st connection. Say yes. To check it worked, run `claude mcp list` — `21st`
+should say connected.
+
+Nothing else here depends on it. If you skip this, everything still works.
