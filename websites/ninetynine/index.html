@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NinetyNine — The Latest Model</title>
+<meta name="description" content="The newest model from NinetyNine.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* =====================================================================
+     NINETYNINE — scroll-told model reveal
+     Layout: one long story. Each chapter holds the screen while you scroll.
+     ===================================================================== */
+  :root {
+    --bg:        #0C0A09;   /* near-black, warm */
+    --bg-2:      #16130F;
+    --ink:       #F2EEE7;
+    --muted:     #A8A196;
+    --line:      #2A251E;
+    --gold:      #E0A82E;
+    --gold-deep: #A16207;
+    --on-gold:   #16130F;
+    --radius:    4px;
+    --fast:      170ms;
+    --med:       280ms;
+    --ease:      cubic-bezier(.22,.61,.36,1);
+    color-scheme: dark;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: Montserrat, system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 17px;
+    font-weight: 300;
+    line-height: 1.7;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3 {
+    font-family: Oswald, "Arial Narrow", system-ui, sans-serif;
+    font-weight: 600; line-height: .95; letter-spacing: .01em;
+    margin: 0; text-transform: uppercase; text-wrap: balance;
+  }
+
+  a { color: var(--gold); }
+  button, a, .spec-card { cursor: pointer; }
+
+  a:focus-visible, button:focus-visible {
+    outline: 2px solid var(--gold); outline-offset: 5px;
+  }
+
+  .wrap { width: min(100% - 2.5rem, 74rem); margin-inline: auto; }
+
+  .skip-link {
+    position: absolute; left: -9999px; z-index: 60;
+    background: var(--gold); color: var(--on-gold);
+    padding: .8rem 1.25rem; text-decoration: none; font-weight: 600;
+  }
+  .skip-link:focus { left: 0; top: 0; }
+
+  .eyebrow {
+    font-family: Oswald, sans-serif; font-weight: 400;
+    font-size: .75rem; letter-spacing: .3em; text-transform: uppercase;
+    color: var(--gold); margin: 0 0 1.25rem;
+    display: flex; align-items: center; gap: .75rem;
+  }
+  .eyebrow::before { content: ""; width: 34px; height: 1px; background: var(--gold); flex: none; }
+  .eyebrow.center { justify-content: center; }
+
+  .lede { color: var(--muted); max-width: 52ch; font-size: 1.05rem; }
+
+  /* ---------- header ---------- */
+  header {
+    position: fixed; inset: 0 0 auto 0; z-index: 40;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 1rem;
+    padding: calc(1.1rem + env(safe-area-inset-top, 0px)) clamp(1.25rem, 4vw, 2.5rem) 1.1rem;
+    background: linear-gradient(180deg, rgba(12,10,9,.9), rgba(12,10,9,0));
+    transition: background var(--med) var(--ease), backdrop-filter var(--med) var(--ease);
+  }
+  header.stuck {
+    background: rgba(12,10,9,.92); backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+  }
+  .brand {
+    font-family: Oswald, sans-serif; font-weight: 600; font-size: 1.1rem;
+    letter-spacing: .32em; text-transform: uppercase;
+    color: var(--ink); text-decoration: none;
+  }
+  .brand b { color: var(--gold); font-weight: 600; }
+  nav { display: flex; gap: 1.75rem; }
+  nav a {
+    color: var(--muted); text-decoration: none;
+    font-family: Oswald, sans-serif; font-weight: 400;
+    font-size: .78rem; letter-spacing: .2em; text-transform: uppercase;
+    position: relative; padding-bottom: 4px;
+  }
+  nav a::after {
+    content: ""; position: absolute; left: 0; bottom: 0; width: 100%; height: 1px;
+    background: var(--gold); transform: scaleX(0); transform-origin: right;
+    transition: transform var(--fast) var(--ease);
+  }
+  nav a:hover { color: var(--ink); }
+  nav a:hover::after { transform: scaleX(1); transform-origin: left; }
+  @media (max-width: 720px) { nav { display: none; } }
+
+  /* ---------- 1. INTRO HOOK ---------- */
+  .hero {
+    position: relative; min-height: 100svh; display: grid; align-content: center;
+    padding: 8rem 0 5rem; overflow: hidden;
+  }
+  .hero-bg { position: absolute; inset: 0; z-index: 0; }
+  .hero-bg .field {
+    position: absolute; inset: -12%;
+    background:
+      radial-gradient(48% 46% at 30% 32%, rgba(224,168,46,.40), transparent 64%),
+      radial-gradient(44% 44% at 74% 58%, rgba(161,98,7,.34), transparent 62%),
+      radial-gradient(60% 50% at 50% 100%, rgba(242,238,231,.10), transparent 66%),
+      var(--bg);
+  }
+  .hero-bg .field.dim { filter: grayscale(1) brightness(.34); }
+  /* the lit copy is cut to a circle that follows the pointer */
+  .hero-bg .field.lit {
+    -webkit-mask-image: radial-gradient(circle var(--reveal, 300px) at var(--mx, 50%) var(--my, 46%),
+                        #000 0 40%, rgba(0,0,0,.4) 70%, transparent 100%);
+    mask-image: radial-gradient(circle var(--reveal, 300px) at var(--mx, 50%) var(--my, 46%),
+                #000 0 40%, rgba(0,0,0,.4) 70%, transparent 100%);
+  }
+  .hero-bg .vignette {
+    position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(12,10,9,.7), rgba(12,10,9,.25) 42%, var(--bg) 97%);
+  }
+  .hero .wrap { position: relative; z-index: 1; }
+
+  .hero h1 { font-size: clamp(3.4rem, 15vw, 12rem); font-weight: 700; letter-spacing: -.015em; }
+  .hero h1 .sm { display: block; font-size: .26em; font-weight: 400;
+                 letter-spacing: .34em; color: var(--muted); margin-bottom: .9rem; }
+  .line { display: block; overflow: hidden; padding-bottom: .04em; }
+  .line .ch {
+    display: inline-block; will-change: transform;
+    transform: translate3d(0, 110%, 0);
+    animation: riseIn 820ms var(--ease) forwards;
+    animation-delay: calc(var(--i) * 44ms + 180ms);
+  }
+  @keyframes riseIn { to { transform: translate3d(0,0,0); } }
+
+  .hero-foot {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 2rem 3rem;
+    margin-top: 2.5rem; opacity: 0; transform: translateY(16px);
+    animation: fadeUp 700ms var(--ease) 1s forwards;
+  }
+  @keyframes fadeUp { to { opacity: 1; transform: none; } }
+  .hero-foot .lede { margin: 0; }
+
+  .scroll-cue {
+    position: absolute; left: 50%; bottom: 2rem; z-index: 2; transform: translateX(-50%);
+    display: grid; place-items: center; gap: .6rem;
+    font-family: Oswald, sans-serif; font-size: .7rem; letter-spacing: .3em;
+    text-transform: uppercase; color: var(--muted);
+    opacity: 0; animation: fadeUp 700ms var(--ease) 1.5s forwards;
+  }
+  .scroll-cue svg { animation: nudge 2s ease-in-out infinite; }
+  @keyframes nudge { 0%,100% { transform: translateY(0); } 50% { transform: translateY(7px); } }
+
+  /* ---------- reading progress ---------- */
+  .read-bar {
+    position: fixed; top: 0; left: 0; right: 0; height: 2px; z-index: 50;
+    background: transparent;
+  }
+  .read-bar b {
+    display: block; height: 100%; background: var(--gold);
+    transform-origin: left; transform: scaleX(var(--read, 0));
+  }
+
+  /* ---------- generic ---------- */
+  section { padding: clamp(5.5rem, 13vw, 10rem) 0; }
+  .sec-head { margin-bottom: 3.5rem; max-width: 60rem; }
+  .sec-head h2 { font-size: clamp(2.3rem, 7.5vw, 5rem); }
+
+  .reveal { opacity: 1; transform: none;
+            transition: opacity 700ms var(--ease), transform 700ms var(--ease); }
+  html.js .reveal { opacity: 0; transform: translateY(28px); }
+  html.js .reveal.in { opacity: 1; transform: none; }
+  .reveal[data-stagger] { transition-delay: calc(var(--s, 0) * 100ms); }
+
+  /* ---------- photo slots ---------- */
+  /* SWAP IN YOUR PHOTO: replace the .ph block with
+     <img src="model-1.jpg" alt="Describe the model" width="1600" height="900"> */
+  .ph {
+    position: absolute; inset: 0; display: grid; place-items: center; gap: .75rem;
+    background:
+      repeating-linear-gradient(135deg, rgba(224,168,46,.05) 0 12px, transparent 12px 24px),
+      linear-gradient(140deg, #1D1914, #0C0A09 70%);
+    color: var(--muted);
+    font-family: Oswald, sans-serif; font-size: .75rem; letter-spacing: .26em;
+    text-transform: uppercase; text-align: center; padding: 1.5rem;
+  }
+  .ph svg { color: var(--gold); opacity: .8; }
+
+  /* ---------- 2. CHAPTER ONE — curtain reveal ---------- */
+  .chapter-one { background: var(--bg-2); border-block: 1px solid var(--line); }
+  .reveal-frame {
+    position: relative; overflow: hidden; border-radius: var(--radius);
+    aspect-ratio: 16 / 9; max-width: 100%; background: var(--bg);
+    border: 1px solid var(--line);
+  }
+  .reveal-frame .curtain {
+    position: absolute; inset: 0; z-index: 2; background: var(--gold);
+    transform-origin: right; transform: scaleX(0);
+    transition: transform 900ms var(--ease);
+  }
+  html.js .reveal-frame .curtain { transform: scaleX(1); }
+  html.js .reveal-frame.in .curtain { transform: scaleX(0); }
+  .frame-caption {
+    display: flex; flex-wrap: wrap; justify-content: space-between; gap: .5rem 2rem;
+    margin-top: 1rem; color: var(--muted); font-size: .82rem;
+    font-family: Oswald, sans-serif; letter-spacing: .18em; text-transform: uppercase;
+  }
+
+  /* ---------- 3. CHAPTER TWO — scroll-driven turntable ---------- */
+  .chapter-two .turn-grid { display: grid; gap: 3rem; align-items: center; }
+  @media (min-width: 940px) { .chapter-two .turn-grid { grid-template-columns: 1fr 1.1fr; gap: 4.5rem; } }
+  .turntable { perspective: 1100px; display: grid; place-items: center; min-height: 360px; }
+  .rig {
+    width: min(78vw, 360px); aspect-ratio: 1; position: relative;
+    transform-style: preserve-3d;
+    transform: rotateX(14deg) rotateY(calc(var(--spin, 0) * 1deg));
+  }
+  .rig .blade {
+    position: absolute; inset: 0; margin: auto; display: block;
+    width: 2px; height: 100%;
+    background: linear-gradient(180deg, transparent, var(--gold) 18%, var(--gold) 82%, transparent);
+    transform: rotateY(calc(var(--r) * 1deg));
+    opacity: .75;
+  }
+  .rig .ring {
+    position: absolute; inset: 8%; border-radius: 50%;
+    border: 1px solid var(--gold); opacity: .3;
+  }
+  .rig .ring.inner { inset: 26%; opacity: .5; }
+  .rig .badge {
+    position: absolute; inset: 0; margin: auto; width: 96px; height: 96px;
+    border-radius: 50%; background: var(--bg); border: 1px solid var(--gold);
+    display: grid; place-items: center; font-family: Oswald, sans-serif;
+    font-size: 1.7rem; font-weight: 600; color: var(--gold); letter-spacing: .06em;
+  }
+  .turn-hint { font-size: .8rem; color: var(--muted); margin-top: 1.5rem;
+               font-family: Oswald, sans-serif; letter-spacing: .2em; text-transform: uppercase; }
+
+  /* ---------- 4. CHAPTER THREE — sticky cinema ---------- */
+  .cinema { height: 340vh; position: relative; padding: 0; }
+  .cinema-sticky {
+    position: sticky; top: 0; height: 100svh; overflow: hidden;
+    display: grid; place-items: center; text-align: center;
+  }
+  .cinema-sticky .halo {
+    position: absolute; width: 130vmax; height: 130vmax; border-radius: 50%;
+    background: radial-gradient(circle, rgba(224,168,46,.14), transparent 56%);
+    transform: scale(var(--zoom, .55));
+  }
+  .beat {
+    position: absolute; padding-inline: 1.5rem; max-width: 26ch;
+    opacity: 0; transform: translateY(36px) scale(.97);
+    transition: opacity 520ms var(--ease), transform 520ms var(--ease);
+  }
+  .beat.on { opacity: 1; transform: none; }
+  .beat h3 { font-size: clamp(2.5rem, 9vw, 6.5rem); font-weight: 700; }
+  .beat p { color: var(--muted); margin-top: 1.25rem; }
+  .beat-rail {
+    position: absolute; bottom: 3rem; left: 50%; transform: translateX(-50%);
+    display: flex; gap: .5rem;
+  }
+  .beat-rail i {
+    width: 42px; height: 2px; background: var(--line); display: block;
+    transition: background var(--med) var(--ease);
+  }
+  .beat-rail i.on { background: var(--gold); }
+
+  /* ---------- 5. SPECS ---------- */
+  .specs { display: grid; gap: 1px; background: var(--line);
+           border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden;
+           grid-template-columns: repeat(2, 1fr); }
+  @media (min-width: 820px) { .specs { grid-template-columns: repeat(4, 1fr); } }
+  .spec {
+    background: var(--bg); padding: 2rem 1.5rem;
+    display: grid; gap: .5rem; align-content: start;
+  }
+  .spec b {
+    font-family: Oswald, sans-serif; font-weight: 600; color: var(--gold);
+    font-size: clamp(2.3rem, 6vw, 3.4rem); line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .spec b small { font-size: .32em; letter-spacing: .12em; margin-left: .35em; color: var(--muted); }
+  .spec span {
+    font-family: Oswald, sans-serif; font-size: .74rem; letter-spacing: .24em;
+    text-transform: uppercase; color: var(--muted);
+  }
+
+  /* ---------- 6. DETAIL CARDS ---------- */
+  .detail-grid { display: grid; gap: 1.25rem; grid-template-columns: 1fr; }
+  @media (min-width: 760px)  { .detail-grid { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1100px) { .detail-grid { grid-template-columns: repeat(3, 1fr); } }
+  .spec-card {
+    position: relative; overflow: hidden; background: var(--bg-2);
+    border: 1px solid var(--line); border-radius: var(--radius); padding: 2rem;
+    min-width: 0;
+    transition: transform var(--med) var(--ease), border-color var(--med) var(--ease);
+  }
+  .spec-card::before {
+    content: ""; position: absolute; inset: 0;
+    background: radial-gradient(200px circle at var(--cx, 50%) var(--cy, 50%),
+                rgba(224,168,46,.13), transparent 70%);
+    opacity: 0; transition: opacity var(--med) var(--ease);
+  }
+  .spec-card:hover, .spec-card:focus-within { transform: translateY(-6px); border-color: var(--gold); }
+  .spec-card:hover::before { opacity: 1; }
+  .spec-card > * { position: relative; }
+  .spec-card svg { color: var(--gold); margin-bottom: 1.25rem; }
+  .spec-card h3 { font-size: 1.3rem; margin-bottom: .6rem; }
+  .spec-card p { color: var(--muted); font-size: .95rem; margin: 0; }
+
+  /* ---------- 7. PARALLAX GALLERY ---------- */
+  .gallery { position: relative; overflow: hidden; border-block: 1px solid var(--line); }
+  .glayer { position: absolute; inset: 0; will-change: transform; }
+  .glayer.a { background: radial-gradient(38% 38% at 18% 26%, rgba(224,168,46,.20), transparent 70%); }
+  .glayer.b { background: radial-gradient(34% 34% at 82% 66%, rgba(161,98,7,.22), transparent 70%); }
+  .gallery .wrap { position: relative; z-index: 1; }
+  .shots { display: grid; gap: 1.25rem; grid-template-columns: 1fr; }
+  @media (min-width: 780px) { .shots { grid-template-columns: 1.6fr 1fr; } }
+  .shot { position: relative; overflow: hidden; border-radius: var(--radius);
+          border: 1px solid var(--line); background: var(--bg); }
+  .shot.tall  { aspect-ratio: 4 / 5; }
+  .shot.wide  { aspect-ratio: 4 / 3; }
+  .shot .inner { position: absolute; inset: -8%; will-change: transform; }
+
+  /* ---------- 8. CLIMAX CTA ---------- */
+  .climax { text-align: center; }
+  .climax h2 { font-size: clamp(2.6rem, 10vw, 7rem); font-weight: 700; }
+  .btn {
+    display: inline-flex; align-items: center; gap: .75rem;
+    background: var(--gold); color: var(--on-gold); border: 0;
+    font-family: Oswald, sans-serif; font-weight: 500; font-size: .92rem;
+    letter-spacing: .2em; text-transform: uppercase;
+    padding: 1.25rem 2.5rem; border-radius: 99px; text-decoration: none;
+    transition: transform var(--fast) var(--ease), box-shadow var(--med) var(--ease);
+  }
+  .btn:hover { box-shadow: 0 14px 50px rgba(224,168,46,.3); }
+  .btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+  .btn.ghost:hover { border-color: var(--gold); color: var(--gold); box-shadow: none; }
+
+  .cursor {
+    position: fixed; top: 0; left: 0; z-index: 55; pointer-events: none;
+    width: 30px; height: 30px; margin: -15px 0 0 -15px; border-radius: 50%;
+    border: 1px solid var(--gold); opacity: 0;
+    transition: opacity var(--med) var(--ease), width var(--fast) var(--ease),
+                height var(--fast) var(--ease), margin var(--fast) var(--ease),
+                background var(--fast) var(--ease);
+  }
+  .cursor.on { opacity: 1; }
+  .cursor.grow { width: 62px; height: 62px; margin: -31px 0 0 -31px; background: rgba(224,168,46,.12); }
+  @media (hover: none), (pointer: coarse) { .cursor { display: none; } }
+
+  footer { border-top: 1px solid var(--line); padding: 3.5rem 0; }
+  .foot-row { display: flex; flex-wrap: wrap; gap: 1rem 2rem;
+              justify-content: space-between; align-items: center;
+              color: var(--muted); font-size: .85rem; }
+
+  /* ---------- reduced motion ---------- */
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: .001ms !important; animation-iteration-count: 1 !important;
+      transition-duration: .001ms !important;
+    }
+    .line .ch { transform: none !important; }
+    .hero-foot, .scroll-cue { opacity: 1 !important; transform: none !important; }
+    html .reveal, html.js .reveal { opacity: 1 !important; transform: none !important; }
+    html .reveal-frame .curtain, html.js .reveal-frame .curtain { transform: scaleX(0) !important; }
+    .cinema { height: auto; }
+    .cinema-sticky { position: static; height: auto; display: grid; gap: 3rem; padding: 4rem 0; }
+    .beat { position: static; opacity: 1 !important; transform: none !important; max-width: none; }
+    .beat-rail { display: none; }
+    .cursor { display: none; }
+  }
+</style>
+</head>
+<body>
+<script>document.documentElement.classList.add("js");</script>
+
+<a class="skip-link" href="#main">Skip to the main part</a>
+<div class="cursor" aria-hidden="true"></div>
+<div class="read-bar" aria-hidden="true"><b id="readBar"></b></div>
+
+<header id="site-head">
+  <a class="brand" href="#top">Ninety<b>Nine</b></a>
+  <nav aria-label="Main">
+    <a href="#reveal">The Model</a>
+    <a href="#angles">Angles</a>
+    <a href="#story">Story</a>
+    <a href="#numbers">Numbers</a>
+    <a href="#enquire">Enquire</a>
+  </nav>
+</header>
+
+<main id="main">
+
+  <!-- ============ 1. INTRO HOOK ============ -->
+  <section class="hero" id="top">
+    <div class="hero-bg" aria-hidden="true">
+      <div class="field dim"></div>
+      <div class="field lit" id="litField"></div>
+      <div class="vignette"></div>
+    </div>
+    <div class="wrap">
+      <p class="eyebrow">NinetyNine · New for 2026</p>
+      <!-- REPLACE: the model's real name goes in the second line below -->
+      <h1>
+        <span class="sm">Introducing</span>
+        <span class="line" data-split>The Latest</span>
+        <span class="line" data-split>Model</span>
+      </h1>
+      <div class="hero-foot">
+        <p class="lede">Everything you have seen from us so far, sharpened.
+          This is the one we have been building toward.</p>
+        <a class="btn" href="#reveal">
+          See it
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </a>
+      </div>
+    </div>
+    <div class="scroll-cue">
+      Scroll
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 5v14M19 12l-7 7-7-7"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- ============ 2. CHAPTER ONE — the curtain reveal ============ -->
+  <section class="chapter-one" id="reveal">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <p class="eyebrow">Chapter One</p>
+        <h2>The first look</h2>
+        <p class="lede">A gold curtain slides off the picture as it comes into view.</p>
+      </div>
+
+      <div class="reveal-frame" id="heroShot">
+        <!-- REPLACE this .ph block with your photo:
+             <img src="model-hero.jpg" alt="The NinetyNine model, front three-quarter view"
+                  width="1600" height="900" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover"> -->
+        <div class="ph">
+          <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <rect x="3" y="5" width="18" height="14" rx="2"/>
+            <circle cx="8.5" cy="10" r="1.5"/>
+            <path d="m21 15-5-5L5 19"/>
+          </svg>
+          Main photo goes here
+        </div>
+        <div class="curtain" aria-hidden="true"></div>
+      </div>
+      <p class="frame-caption">
+        <span>NinetyNine · The Latest Model</span>
+        <span>Figure 01</span>
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ 3. CHAPTER TWO — scroll turns it ============ -->
+  <section class="chapter-two" id="angles">
+    <div class="wrap turn-grid">
+      <div class="reveal">
+        <p class="eyebrow">Chapter Two</p>
+        <h2>Every angle</h2>
+        <p class="lede">This turns as you scroll — forwards going down, backwards going up.
+          Nothing plays on its own, so the visitor is the one driving it.</p>
+        <p class="turn-hint">Scroll to rotate</p>
+      </div>
+      <div class="turntable">
+        <div class="rig" id="rig" role="img"
+             aria-label="The model on a turntable that rotates as the page scrolls">
+          <span class="ring" aria-hidden="true"></span>
+          <span class="ring inner" aria-hidden="true"></span>
+          <i class="blade" style="--r:0"></i><i class="blade" style="--r:22.5"></i>
+          <i class="blade" style="--r:45"></i><i class="blade" style="--r:67.5"></i>
+          <i class="blade" style="--r:90"></i><i class="blade" style="--r:112.5"></i>
+          <i class="blade" style="--r:135"></i><i class="blade" style="--r:157.5"></i>
+          <div class="badge">99</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 4. CHAPTER THREE — sticky cinema ============ -->
+  <section class="cinema" id="story">
+    <div class="cinema-sticky">
+      <div class="halo" aria-hidden="true"></div>
+      <!-- REPLACE: three lines that tell the model's story -->
+      <div class="beat" data-beat="0">
+        <h3>Drawn first</h3>
+        <p>It started as a single line on paper, and we kept coming back to it.</p>
+      </div>
+      <div class="beat" data-beat="1">
+        <h3>Built slowly</h3>
+        <p>Every part earned its place. Nothing on it is there to fill a gap.</p>
+      </div>
+      <div class="beat" data-beat="2">
+        <h3>Yours now</h3>
+        <p>The screen holds still while the words change — then the page carries on.</p>
+      </div>
+      <div class="beat-rail" aria-hidden="true">
+        <i></i><i></i><i></i>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 5. NUMBERS ============ -->
+  <section id="numbers">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <p class="eyebrow">By the numbers</p>
+        <h2>What it comes to</h2>
+        <p class="lede">These count up the moment they reach the screen.
+          Swap the four figures for the real ones.</p>
+      </div>
+      <!-- REPLACE: data-count is the number, data-unit is the label after it -->
+      <div class="specs">
+        <div class="spec reveal" data-stagger style="--s:0">
+          <b data-count="99">0</b><span>Units built</span>
+        </div>
+        <div class="spec reveal" data-stagger style="--s:1">
+          <b data-count="340" data-unit="km/h">0</b><span>Top figure</span>
+        </div>
+        <div class="spec reveal" data-stagger style="--s:2">
+          <b data-count="18" data-unit="mo">0</b><span>In development</span>
+        </div>
+        <div class="spec reveal" data-stagger style="--s:3">
+          <b data-count="7" data-unit="yr">0</b><span>Covered</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 6. DETAIL CARDS ============ -->
+  <section style="padding-top:0">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <p class="eyebrow">The detail</p>
+        <h2>Three things worth knowing</h2>
+      </div>
+      <div class="detail-grid">
+        <article class="spec-card reveal" data-stagger style="--s:0" tabindex="0">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z"/>
+          </svg>
+          <h3>Point one</h3>
+          <p>Replace this with the first thing you want people to know. Two lines is plenty.</p>
+        </article>
+        <article class="spec-card reveal" data-stagger style="--s:1" tabindex="0">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 2 4 6v6c0 5 3.4 9.1 8 10 4.6-.9 8-5 8-10V6l-8-4Z"/>
+          </svg>
+          <h3>Point two</h3>
+          <p>The soft light inside these cards follows the visitor's pointer as they move across.</p>
+        </article>
+        <article class="spec-card reveal" data-stagger style="--s:2" tabindex="0">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/>
+          </svg>
+          <h3>Point three</h3>
+          <p>They fade up one after another, so the eye is led down the page instead of ambushed.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 7. PARALLAX GALLERY ============ -->
+  <section class="gallery" id="gallery">
+    <div class="glayer a" data-speed="14" aria-hidden="true"></div>
+    <div class="glayer b" data-speed="26" aria-hidden="true"></div>
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <p class="eyebrow">Gallery</p>
+        <h2>Closer in</h2>
+        <p class="lede">The pictures drift a little slower than the page, so the section feels deep
+          rather than flat.</p>
+      </div>
+      <div class="shots">
+        <!-- REPLACE each .ph with an <img> filling .inner -->
+        <div class="shot wide reveal">
+          <div class="inner" data-drift="10">
+            <div class="ph">
+              <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/>
+                <path d="m21 15-5-5L5 19"/>
+              </svg>
+              Wide shot
+            </div>
+          </div>
+        </div>
+        <div class="shot tall reveal" data-stagger style="--s:1">
+          <div class="inner" data-drift="18">
+            <div class="ph">
+              <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                   stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/>
+                <path d="m21 15-5-5L5 19"/>
+              </svg>
+              Detail shot
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 8. CLIMAX CTA ============ -->
+  <section class="climax" id="enquire">
+    <div class="wrap reveal">
+      <p class="eyebrow center">Enquire</p>
+      <h2>Want one?</h2>
+      <p class="lede" style="margin:1.5rem auto 2.75rem">Tell us and we will be in touch.
+        Put your real contact details in here.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:1rem;justify-content:center">
+        <a class="btn" href="#top" id="magnet">
+          Register interest
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </a>
+        <a class="btn ghost" href="#reveal">Look again</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap foot-row">
+    <span class="brand" style="font-size:.95rem">Ninety<b>Nine</b></span>
+    <span>The latest model · 2026</span>
+  </div>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+  var calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* split the headline so the letters can rise one at a time */
+  document.querySelectorAll("[data-split]").forEach(function (el) {
+    var text = el.textContent.trim(), out = "", n = 0;
+    el.setAttribute("aria-label", text);
+    for (var i = 0; i < text.length; i++) {
+      var c = text[i];
+      out += "<span class='ch' style='--i:" + (n++) + "'>" + (c === " " ? "&nbsp;" : c) + "</span>";
+    }
+    el.innerHTML = out;
+  });
+
+  /* fade things up as they arrive */
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
+    });
+  }, { threshold: 0.15, rootMargin: "0px 0px -8% 0px" });
+  document.querySelectorAll(".reveal, .reveal-frame").forEach(function (el) { io.observe(el); });
+
+  /* numbers count up */
+  var nums = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      var el = e.target, target = parseInt(el.dataset.count, 10) || 0;
+      var unit = el.dataset.unit ? "<small>" + el.dataset.unit + "</small>" : "";
+      nums.unobserve(el);
+      if (calm) { el.innerHTML = target + unit; return; }
+      var start = performance.now(), dur = 1200;
+      (function tick(now) {
+        var p = Math.min((now - start) / dur, 1);
+        el.innerHTML = Math.round(target * (1 - Math.pow(1 - p, 3))) + unit;
+        if (p < 1) requestAnimationFrame(tick);
+      })(start);
+    });
+  }, { threshold: 0.6 });
+  document.querySelectorAll("[data-count]").forEach(function (el) { nums.observe(el); });
+
+  /* the light in the hero follows the pointer */
+  var lit = document.getElementById("litField"), hero = document.querySelector(".hero");
+  if (lit && hero && !calm) {
+    hero.addEventListener("pointermove", function (e) {
+      var r = hero.getBoundingClientRect();
+      lit.style.setProperty("--mx", ((e.clientX - r.left) / r.width * 100) + "%");
+      lit.style.setProperty("--my", ((e.clientY - r.top) / r.height * 100) + "%");
+    }, { passive: true });
+  }
+
+  /* soft light inside the detail cards */
+  document.querySelectorAll(".spec-card").forEach(function (card) {
+    card.addEventListener("pointermove", function (e) {
+      var r = card.getBoundingClientRect();
+      card.style.setProperty("--cx", (e.clientX - r.left) + "px");
+      card.style.setProperty("--cy", (e.clientY - r.top) + "px");
+    }, { passive: true });
+  });
+
+  /* the trailing cursor ring */
+  var ring = document.querySelector(".cursor");
+  if (ring && !calm && window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+    var rx = 0, ry = 0, tx = 0, ty = 0;
+    window.addEventListener("pointermove", function (e) {
+      tx = e.clientX; ty = e.clientY; ring.classList.add("on");
+    }, { passive: true });
+    document.addEventListener("pointerover", function (e) {
+      var hit = e.target.closest && e.target.closest("a, button, .spec-card");
+      ring.classList.toggle("grow", !!hit);
+    });
+    (function follow() {
+      rx += (tx - rx) * 0.18; ry += (ty - ry) * 0.18;
+      ring.style.transform = "translate3d(" + rx + "px," + ry + "px,0)";
+      requestAnimationFrame(follow);
+    })();
+  }
+
+  /* the button leans toward the pointer */
+  var magnet = document.getElementById("magnet");
+  if (magnet && !calm) {
+    magnet.addEventListener("pointermove", function (e) {
+      var r = magnet.getBoundingClientRect();
+      magnet.style.transform = "translate(" + (e.clientX - (r.left + r.width / 2)) * 0.22 + "px,"
+                                            + (e.clientY - (r.top + r.height / 2)) * 0.3 + "px)";
+    });
+    magnet.addEventListener("pointerleave", function () { magnet.style.transform = ""; });
+  }
+
+  /* everything tied to scroll position, in one loop */
+  var head   = document.getElementById("site-head");
+  var readBar= document.getElementById("readBar");
+  var rig    = document.getElementById("rig");
+  var cinema = document.querySelector(".cinema");
+  var beats  = [].slice.call(document.querySelectorAll(".beat"));
+  var dots   = [].slice.call(document.querySelectorAll(".beat-rail i"));
+  var halo   = document.querySelector(".cinema-sticky .halo");
+  var layers = [].slice.call(document.querySelectorAll(".glayer"));
+  var drifts = [].slice.call(document.querySelectorAll("[data-drift]"));
+  var queued = false;
+
+  function onScroll() {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(function () {
+      queued = false;
+      var y = window.scrollY || window.pageYOffset;
+      var vh = window.innerHeight;
+
+      if (head) head.classList.toggle("stuck", y > 40);
+      if (readBar) {
+        var max = document.documentElement.scrollHeight - vh;
+        readBar.style.setProperty("--read", max > 0 ? (y / max).toFixed(4) : 0);
+      }
+      if (calm) return;
+
+      if (rig) {
+        var rr = rig.getBoundingClientRect();
+        if (rr.bottom > 0 && rr.top < vh) {
+          var p = 1 - (rr.top + rr.height / 2) / (vh + rr.height / 2);
+          rig.style.setProperty("--spin", (p * 400).toFixed(1));
+        }
+      }
+
+      if (cinema && beats.length) {
+        var cr = cinema.getBoundingClientRect();
+        var span = cr.height - vh;
+        var p2 = span > 0 ? Math.min(Math.max(-cr.top / span, 0), 1) : 0;
+        if (halo) halo.style.setProperty("--zoom", (0.5 + p2 * 0.9).toFixed(3));
+        var active = Math.min(Math.floor(p2 * beats.length), beats.length - 1);
+        beats.forEach(function (b, i) { b.classList.toggle("on", i === active); });
+        dots.forEach(function (d, i) { d.classList.toggle("on", i === active); });
+      }
+
+      layers.forEach(function (l) {
+        var host = l.parentElement.getBoundingClientRect();
+        if (host.bottom < 0 || host.top > vh) return;
+        var p3 = (host.top + host.height / 2 - vh / 2) / vh;
+        l.style.transform = "translate3d(0," + (p3 * -(+l.dataset.speed)) + "%,0)";
+      });
+
+      drifts.forEach(function (d) {
+        var host = d.parentElement.getBoundingClientRect();
+        if (host.bottom < 0 || host.top > vh) return;
+        var p4 = (host.top + host.height / 2 - vh / 2) / vh;
+        d.style.transform = "translate3d(0," + (p4 * -(+d.dataset.drift)) + "%,0)";
+      });
+    });
+  }
+  window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("resize", onScroll, { passive: true });
+  onScroll();
+})();
+</script>
+</body>
+</html>
