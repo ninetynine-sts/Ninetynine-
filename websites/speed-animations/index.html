@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Speed — Animation Showcase</title>
+<meta name="description" content="A demo of fast, cinematic, race-inspired web animations.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #0A0A0B;
+    --bg-2:      #121215;
+    --ink:       #F4F5F7;
+    --muted:     #A8ABB4;
+    --line:      #26262B;
+    --lime:      #D7FF3E;
+    --lime-deep: #8FB300;
+    --on-lime:   #0A0A0B;
+    --radius:    14px;
+    --fast:      180ms;
+    --med:       280ms;
+    --ease:      cubic-bezier(.22,.61,.36,1);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 17px;
+    line-height: 1.6;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3 { font-family: Anton, Impact, system-ui, sans-serif; font-weight: 400;
+               line-height: .92; letter-spacing: -.01em; margin: 0; text-transform: uppercase; }
+
+  a { color: var(--lime); }
+
+  .wrap { width: min(100% - 2.5rem, 72rem); margin-inline: auto; }
+
+  a:focus-visible, button:focus-visible {
+    outline: 3px solid var(--lime);
+    outline-offset: 4px;
+    border-radius: 6px;
+  }
+
+  button, a, .demo-card { cursor: pointer; }
+
+  .skip-link {
+    position: absolute; left: -9999px; z-index: 50;
+    background: var(--lime); color: var(--on-lime);
+    padding: .75rem 1.25rem; text-decoration: none; font-weight: 700;
+  }
+  .skip-link:focus { left: 0; top: 0; }
+
+  .label {
+    font-size: .72rem; letter-spacing: .18em; text-transform: uppercase;
+    color: var(--lime); font-weight: 700; margin: 0 0 1rem;
+    display: flex; align-items: center; gap: .6rem;
+  }
+  .label::before { content: ""; width: 28px; height: 2px; background: var(--lime); }
+
+  .note { color: var(--muted); max-width: 46ch; }
+
+  /* ============ 1. HEADER ============ */
+  header {
+    position: fixed; inset: 0 0 auto 0; z-index: 30;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1rem clamp(1.25rem, 4vw, 2.5rem);
+    backdrop-filter: blur(10px);
+    background: rgba(10,10,11,.6);
+    border-bottom: 1px solid transparent;
+    transition: border-color var(--med) var(--ease), background var(--med) var(--ease);
+  }
+  header.stuck { border-bottom-color: var(--line); background: rgba(10,10,11,.88); }
+  .logo { font-family: Anton, sans-serif; font-size: 1.15rem; letter-spacing: .04em;
+          text-transform: uppercase; text-decoration: none; color: var(--ink); }
+  .logo span { color: var(--lime); }
+  nav { display: flex; gap: 1.5rem; }
+  nav a {
+    color: var(--muted); text-decoration: none; font-size: .85rem; font-weight: 500;
+    letter-spacing: .08em; text-transform: uppercase;
+    position: relative; padding-bottom: 3px;
+  }
+  nav a::after {
+    content: ""; position: absolute; left: 0; bottom: 0; height: 2px; width: 100%;
+    background: var(--lime); transform: scaleX(0); transform-origin: right;
+    transition: transform var(--fast) var(--ease);
+  }
+  nav a:hover { color: var(--ink); }
+  nav a:hover::after { transform: scaleX(1); transform-origin: left; }
+  @media (max-width: 620px) { nav { display: none; } }
+
+  /* ============ 2. HERO — letter stagger + cursor colour reveal ============ */
+  .hero {
+    position: relative; min-height: 100svh;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 7rem 0 4rem; overflow: hidden;
+  }
+  .hero-bg { position: absolute; inset: 0; z-index: 0; }
+  .hero-bg .paint {
+    position: absolute; inset: -10%;
+    background:
+      radial-gradient(60% 55% at 18% 25%, rgba(215,255,62,.55), transparent 62%),
+      radial-gradient(55% 50% at 82% 30%, rgba(255,106,0,.45), transparent 60%),
+      radial-gradient(70% 60% at 50% 95%, rgba(0,180,216,.35), transparent 65%),
+      var(--bg);
+  }
+  .hero-bg .paint.grey { filter: grayscale(1) brightness(.42) contrast(1.1); }
+  /* The colourful copy is masked to a circle that chases the pointer. */
+  .hero-bg .paint.colour {
+    -webkit-mask-image: radial-gradient(circle var(--reveal, 260px) at var(--mx, 50%) var(--my, 42%),
+                        #000 0 42%, rgba(0,0,0,.45) 68%, transparent 100%);
+    mask-image: radial-gradient(circle var(--reveal, 260px) at var(--mx, 50%) var(--my, 42%),
+                #000 0 42%, rgba(0,0,0,.45) 68%, transparent 100%);
+  }
+  .hero-bg .veil { position: absolute; inset: 0;
+    background: linear-gradient(180deg, rgba(10,10,11,.55), rgba(10,10,11,.2) 40%, var(--bg) 96%); }
+
+  .hero .wrap { position: relative; z-index: 1; }
+  .hero h1 { font-size: clamp(3.2rem, 15vw, 11rem); }
+  .line { display: block; overflow: hidden; }
+  .line .ch {
+    display: inline-block; will-change: transform;
+    transform: translate3d(0, 110%, 0) rotate(6deg);
+    animation: riseIn 720ms var(--ease) forwards;
+    animation-delay: calc(var(--i) * 42ms + 150ms);
+  }
+  @keyframes riseIn { to { transform: translate3d(0,0,0) rotate(0); } }
+  .hero-sub {
+    margin: 1.75rem 0 0; max-width: 40ch; color: var(--ink);
+    opacity: 0; transform: translateY(14px);
+    animation: fadeUp 600ms var(--ease) 900ms forwards;
+  }
+  @keyframes fadeUp { to { opacity: 1; transform: none; } }
+  .hero-hint { margin-top: .35rem; font-size: .85rem; color: var(--muted); }
+
+  .scroll-cue {
+    position: absolute; left: 50%; bottom: 1.75rem; z-index: 2;
+    transform: translateX(-50%); display: grid; place-items: center; gap: .5rem;
+    font-size: .7rem; letter-spacing: .2em; text-transform: uppercase; color: var(--muted);
+    opacity: 0; animation: fadeUp 600ms var(--ease) 1.4s forwards;
+  }
+  .scroll-cue svg { animation: nudge 1.8s ease-in-out infinite; }
+  @keyframes nudge { 0%,100% { transform: translateY(0); } 50% { transform: translateY(6px); } }
+
+  /* ============ 3. TICKER ============ */
+  .ticker {
+    border-block: 1px solid var(--line); background: var(--lime); color: var(--on-lime);
+    overflow: hidden; padding: .7rem 0;
+  }
+  .ticker-track { display: flex; width: max-content; animation: slide 22s linear infinite; }
+  .ticker:hover .ticker-track { animation-play-state: paused; }
+  .ticker-track span {
+    font-family: Anton, sans-serif; text-transform: uppercase; font-size: 1.05rem;
+    letter-spacing: .05em; padding-inline: 1.5rem; display: flex; align-items: center; gap: 1.5rem;
+  }
+  .ticker-track span::after { content: ""; width: 7px; height: 7px; background: var(--on-lime);
+                              border-radius: 50%; display: block; }
+  @keyframes slide { to { transform: translateX(-50%); } }
+
+  /* ============ generic section ============ */
+  section { padding: clamp(5rem, 12vw, 9rem) 0; }
+  .sec-head { margin-bottom: 3rem; }
+  .sec-head h2 { font-size: clamp(2.2rem, 7vw, 4.5rem); }
+
+  /* reveal-on-scroll */
+  .reveal { opacity: 0; transform: translateY(26px); transition: opacity 600ms var(--ease), transform 600ms var(--ease); }
+  .reveal.in { opacity: 1; transform: none; }
+  .reveal[data-stagger] { transition-delay: calc(var(--s, 0) * 90ms); }
+
+  /* ============ 4. SCROLL-DRIVEN 3D WHEEL ============ */
+  .scene-3d { background: var(--bg-2); border-block: 1px solid var(--line); }
+  .wheel-grid { display: grid; gap: 3rem; grid-template-columns: 1fr; align-items: center; }
+  @media (min-width: 900px) { .wheel-grid { grid-template-columns: 1fr 1fr; gap: 4rem; } }
+  .stage { perspective: 900px; display: grid; place-items: center; min-height: 340px; }
+  .wheel {
+    width: min(70vw, 300px); aspect-ratio: 1; position: relative;
+    transform-style: preserve-3d;
+    transform: rotateX(18deg) rotateY(calc(var(--spin, 0) * 1deg));
+  }
+  .wheel i {
+    position: absolute; inset: 0; margin: auto; display: block;
+    width: 18px; height: 100%; border-radius: 99px;
+    background: linear-gradient(180deg, var(--lime), var(--lime-deep));
+    transform: rotateY(calc(var(--r) * 1deg)) translateZ(0);
+    opacity: .9;
+  }
+  .wheel::after {
+    content: ""; position: absolute; inset: 0; border-radius: 50%;
+    border: 3px solid var(--lime); opacity: .35;
+  }
+  .hub {
+    position: absolute; inset: 0; margin: auto; width: 76px; height: 76px; border-radius: 50%;
+    background: var(--bg); border: 3px solid var(--lime); display: grid; place-items: center;
+    font-family: Anton, sans-serif; font-size: 1.5rem; color: var(--lime);
+  }
+
+  /* ============ 5. STICKY CINEMATIC SCENE ============ */
+  .cinema { height: 320vh; position: relative; padding: 0; }
+  .cinema-sticky {
+    position: sticky; top: 0; height: 100svh; display: grid; place-items: center;
+    overflow: hidden; text-align: center;
+  }
+  .cinema-sticky .glow {
+    position: absolute; width: 120vmax; height: 120vmax; border-radius: 50%;
+    background: radial-gradient(circle, rgba(215,255,62,.16), transparent 58%);
+    transform: scale(var(--zoom, .6));
+  }
+  .frame {
+    position: absolute; padding-inline: 1.5rem; max-width: 24ch;
+    opacity: 0; transform: translateY(34px) scale(.96);
+    transition: opacity 500ms var(--ease), transform 500ms var(--ease);
+  }
+  .frame.on { opacity: 1; transform: none; }
+  .frame h3 { font-size: clamp(2.4rem, 9vw, 6rem); }
+  .frame p { color: var(--muted); margin-top: 1rem; }
+  .progress-rail {
+    position: absolute; bottom: 2.5rem; left: 50%; transform: translateX(-50%);
+    width: min(60%, 320px); height: 3px; background: var(--line); border-radius: 99px; overflow: hidden;
+  }
+  .progress-rail b { display: block; height: 100%; width: 100%; background: var(--lime);
+                     transform-origin: left; transform: scaleX(var(--p, 0)); }
+
+  /* ============ 6. PARALLAX ============ */
+  .parallax { position: relative; overflow: hidden; border-block: 1px solid var(--line); }
+  .layer { position: absolute; inset: 0; will-change: transform; }
+  .layer.l1 { background: radial-gradient(40% 40% at 20% 30%, rgba(0,180,216,.25), transparent 70%); }
+  .layer.l2 { background: radial-gradient(35% 35% at 80% 60%, rgba(255,106,0,.22), transparent 70%); }
+  .parallax .wrap { position: relative; z-index: 1; }
+
+  /* ============ 7. COUNTERS ============ */
+  .stats { display: grid; gap: 1.25rem; grid-template-columns: repeat(2, 1fr); }
+  @media (min-width: 760px) { .stats { grid-template-columns: repeat(4, 1fr); } }
+  .stat {
+    border: 1px solid var(--line); border-radius: var(--radius); padding: 1.5rem;
+    background: var(--bg-2);
+  }
+  .stat b { display: block; font-family: Anton, sans-serif; font-size: clamp(2.4rem, 6vw, 3.4rem);
+            color: var(--lime); line-height: 1; }
+  .stat small { color: var(--muted); font-size: .8rem; letter-spacing: .12em; text-transform: uppercase; }
+
+  /* ============ 8. CARDS ============ */
+  .cards { display: grid; gap: 1.25rem; grid-template-columns: 1fr; }
+  @media (min-width: 760px)  { .cards { grid-template-columns: repeat(2, 1fr); } }
+  @media (min-width: 1100px) { .cards { grid-template-columns: repeat(3, 1fr); } }
+  .demo-card {
+    position: relative; overflow: hidden; border: 1px solid var(--line);
+    border-radius: var(--radius); padding: 1.75rem; background: var(--bg-2);
+    transition: transform var(--med) var(--ease), border-color var(--med) var(--ease);
+  }
+  .demo-card::before {
+    content: ""; position: absolute; inset: 0;
+    background: radial-gradient(180px circle at var(--cx, 50%) var(--cy, 50%), rgba(215,255,62,.14), transparent 70%);
+    opacity: 0; transition: opacity var(--med) var(--ease);
+  }
+  .demo-card:hover, .demo-card:focus-within { transform: translateY(-6px); border-color: var(--lime); }
+  .demo-card:hover::before { opacity: 1; }
+  .demo-card > * { position: relative; }
+  .demo-card svg { color: var(--lime); margin-bottom: 1rem; }
+  .demo-card h3 { font-size: 1.35rem; margin-bottom: .5rem; }
+  .demo-card p { color: var(--muted); font-size: .95rem; margin: 0; }
+
+  /* ============ 9. WIPE REVEAL ============ */
+  .wipe { position: relative; border-radius: var(--radius); overflow: hidden;
+          aspect-ratio: 16 / 9; background: var(--bg-2); }
+  .wipe .art { position: absolute; inset: 0; display: grid; place-items: center;
+    background: linear-gradient(120deg, #1B1B20, #0A0A0B 60%),
+                radial-gradient(50% 60% at 30% 40%, rgba(215,255,62,.3), transparent 60%); }
+  .wipe .curtain {
+    position: absolute; inset: 0; background: var(--lime); transform-origin: right;
+    transform: scaleX(1); transition: transform 760ms var(--ease);
+  }
+  .wipe.in .curtain { transform: scaleX(0); }
+
+  /* ============ 10. MAGNETIC BUTTON + CURSOR ============ */
+  .btn {
+    display: inline-flex; align-items: center; gap: .65rem;
+    background: var(--lime); color: var(--on-lime); border: 0;
+    font: 700 .95rem/1 Inter, sans-serif; letter-spacing: .06em; text-transform: uppercase;
+    padding: 1.15rem 2rem; border-radius: 99px; text-decoration: none;
+    transition: transform var(--fast) var(--ease), box-shadow var(--med) var(--ease);
+    box-shadow: 0 0 0 rgba(215,255,62,0);
+  }
+  .btn:hover { box-shadow: 0 10px 40px rgba(215,255,62,.28); }
+
+  .cursor {
+    position: fixed; top: 0; left: 0; z-index: 60; pointer-events: none;
+    width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%;
+    border: 2px solid var(--lime); opacity: 0;
+    transition: opacity var(--med) var(--ease), width var(--fast) var(--ease),
+                height var(--fast) var(--ease), margin var(--fast) var(--ease),
+                background var(--fast) var(--ease);
+  }
+  .cursor.on { opacity: 1; }
+  .cursor.grow { width: 64px; height: 64px; margin: -32px 0 0 -32px; background: rgba(215,255,62,.14); }
+  @media (hover: none), (pointer: coarse) { .cursor { display: none; } }
+
+  footer { border-top: 1px solid var(--line); padding: 3rem 0; color: var(--muted); font-size: .9rem; }
+
+  /* ============ RESPECT REDUCED MOTION ============ */
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: .001ms !important; animation-iteration-count: 1 !important;
+      transition-duration: .001ms !important;
+    }
+    .line .ch { transform: none; }
+    .hero-sub, .scroll-cue { opacity: 1; transform: none; }
+    .reveal { opacity: 1; transform: none; }
+    .frame { opacity: 1; position: static; }
+    .cinema { height: auto; }
+    .cinema-sticky { position: static; height: auto; padding: 4rem 0; display: grid; gap: 2rem; }
+    .wipe .curtain { transform: scaleX(0); }
+    .cursor { display: none; }
+  }
+</style>
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to content</a>
+<div class="cursor" aria-hidden="true"></div>
+
+<header id="site-head">
+  <a class="logo" href="#top">Speed<span>.</span></a>
+  <nav aria-label="Main">
+    <a href="#motion">Motion</a>
+    <a href="#story">Story</a>
+    <a href="#numbers">Numbers</a>
+    <a href="#kit">Kit</a>
+  </nav>
+</header>
+
+<main id="main">
+
+  <!-- 1 + 2 : letter stagger and cursor colour reveal -->
+  <section class="hero" id="top">
+    <div class="hero-bg" aria-hidden="true">
+      <div class="paint grey"></div>
+      <div class="paint colour" id="colourPaint"></div>
+      <div class="veil"></div>
+    </div>
+    <div class="wrap">
+      <p class="label">Animation showcase</p>
+      <h1>
+        <span class="line" data-split>Built for</span>
+        <span class="line" data-split>Speed</span>
+      </h1>
+      <p class="hero-sub">Every effect on this page is hand-built in one plain file. No page builder, no plugins.</p>
+      <p class="hero-hint">Move your mouse around — the colour follows you.</p>
+    </div>
+    <div class="scroll-cue">
+      Scroll
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 5v14M19 12l-7 7-7-7"/>
+      </svg>
+    </div>
+  </section>
+
+  <!-- 3 : ticker -->
+  <div class="ticker" aria-hidden="true">
+    <div class="ticker-track">
+      <span>Fast</span><span>Smooth</span><span>Cinematic</span><span>Hand built</span>
+      <span>Fast</span><span>Smooth</span><span>Cinematic</span><span>Hand built</span>
+      <span>Fast</span><span>Smooth</span><span>Cinematic</span><span>Hand built</span>
+      <span>Fast</span><span>Smooth</span><span>Cinematic</span><span>Hand built</span>
+    </div>
+  </div>
+
+  <!-- 4 : scroll-driven 3D -->
+  <section class="scene-3d" id="motion">
+    <div class="wrap wheel-grid">
+      <div class="reveal">
+        <p class="label">Effect 01</p>
+        <h2>Scroll spins it</h2>
+        <p class="note">A real three-dimensional object that turns as you scroll — forwards when you
+          go down, backwards when you go up. Nothing plays on its own; you are driving it.</p>
+      </div>
+      <div class="stage">
+        <div class="wheel" id="wheel" role="img" aria-label="A spoked wheel that rotates as the page scrolls">
+          <i style="--r:0"></i><i style="--r:30"></i><i style="--r:60"></i><i style="--r:90"></i>
+          <i style="--r:120"></i><i style="--r:150"></i>
+          <div class="hub">99</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 : sticky cinematic scene -->
+  <section class="cinema" id="story">
+    <div class="cinema-sticky">
+      <div class="glow" aria-hidden="true"></div>
+      <div class="frame" data-frame="0">
+        <h3>Lights out</h3>
+        <p>The screen holds still while the words change underneath you.</p>
+      </div>
+      <div class="frame" data-frame="1">
+        <h3>Full throttle</h3>
+        <p>One long scroll, three moments — like a short film.</p>
+      </div>
+      <div class="frame" data-frame="2">
+        <h3>Chequered flag</h3>
+        <p>Then the page carries on as normal.</p>
+      </div>
+      <div class="progress-rail" aria-hidden="true"><b id="cineBar"></b></div>
+    </div>
+  </section>
+
+  <!-- 6 : parallax -->
+  <section class="parallax" id="depth">
+    <div class="layer l1" data-speed="12" aria-hidden="true"></div>
+    <div class="layer l2" data-speed="26" aria-hidden="true"></div>
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <p class="label">Effect 03</p>
+        <h2>Layers that drift</h2>
+        <p class="note">The background glows move slower than the text, so the page feels deep
+          instead of flat.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 : counters -->
+  <section id="numbers">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <p class="label">Effect 04</p>
+        <h2>Numbers that count up</h2>
+      </div>
+      <div class="stats">
+        <div class="stat reveal" data-stagger style="--s:0"><b data-count="24">0</b><small>Wins</small></div>
+        <div class="stat reveal" data-stagger style="--s:1"><b data-count="112">0</b><small>Podiums</small></div>
+        <div class="stat reveal" data-stagger style="--s:2"><b data-count="9">0</b><small>Poles</small></div>
+        <div class="stat reveal" data-stagger style="--s:3"><b data-count="340" data-suffix="km/h">0</b><small>Top speed</small></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 : cards -->
+  <section id="kit">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <p class="label">Effect 05</p>
+        <h2>Cards that wake up</h2>
+        <p class="note">They fade in one after another, lift on hover, and a soft light follows
+          your pointer across them.</p>
+      </div>
+      <div class="cards">
+        <article class="demo-card reveal" data-stagger style="--s:0" tabindex="0">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z"/>
+          </svg>
+          <h3>Instant feel</h3>
+          <p>Hover and press reactions land in under a fifth of a second, so nothing feels sticky.</p>
+        </article>
+        <article class="demo-card reveal" data-stagger style="--s:1" tabindex="0">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/>
+          </svg>
+          <h3>Tied to scroll</h3>
+          <p>Motion is linked to your finger or wheel, not a timer, so you stay in control.</p>
+        </article>
+        <article class="demo-card reveal" data-stagger style="--s:2" tabindex="0">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20 6 9 17l-5-5"/>
+          </svg>
+          <h3>Kind by default</h3>
+          <p>If a visitor has asked their device for less movement, everything calms down on its own.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9 : wipe -->
+  <section id="wipe-sec">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <p class="label">Effect 06</p>
+        <h2>A curtain pulls back</h2>
+      </div>
+      <div class="wipe" id="wipeBox">
+        <div class="art" aria-hidden="true">
+          <svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="#D7FF3E" stroke-width="1.2"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3"/>
+            <path d="M12 3v6M12 15v6M3 12h6M15 12h6"/>
+          </svg>
+        </div>
+        <div class="curtain" aria-hidden="true"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 10 : magnetic button -->
+  <section style="text-align:center">
+    <div class="wrap reveal">
+      <p class="label" style="justify-content:center">Effect 07</p>
+      <h2 style="font-size:clamp(2rem,6vw,3.6rem)">A button that leans in</h2>
+      <p class="note" style="margin:1rem auto 2.25rem">Get your pointer close and it moves toward you.</p>
+      <a class="btn" href="#top" id="magnet">
+        Back to the top
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 19V5M5 12l7-7 7 7"/>
+        </svg>
+      </a>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">Animation demo · one HTML file · no build step</div>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+  var calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ---- split headline into letters so they can rise one by one ---- */
+  document.querySelectorAll("[data-split]").forEach(function (el) {
+    var text = el.textContent, out = "", n = 0;
+    el.setAttribute("aria-label", text);
+    for (var i = 0; i < text.length; i++) {
+      var c = text[i];
+      if (c === " ") { out += "<span class='ch' style='--i:" + (n++) + "'>&nbsp;</span>"; }
+      else { out += "<span class='ch' style='--i:" + (n++) + "'>" + c + "</span>"; }
+    }
+    el.innerHTML = out;
+    el.setAttribute("aria-hidden", "false");
+  });
+
+  /* ---- reveal on scroll ---- */
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
+    });
+  }, { threshold: 0.18, rootMargin: "0px 0px -8% 0px" });
+  document.querySelectorAll(".reveal, .wipe").forEach(function (el) { io.observe(el); });
+
+  /* ---- counting numbers ---- */
+  var countIO = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      var el = e.target, target = parseInt(el.dataset.count, 10) || 0;
+      var suffix = el.dataset.suffix ? " " + el.dataset.suffix : "";
+      countIO.unobserve(el);
+      if (calm) { el.textContent = target + suffix; return; }
+      var start = performance.now(), dur = 1100;
+      (function tick(now) {
+        var p = Math.min((now - start) / dur, 1);
+        var eased = 1 - Math.pow(1 - p, 3);
+        el.textContent = Math.round(target * eased) + suffix;
+        if (p < 1) requestAnimationFrame(tick);
+      })(start);
+    });
+  }, { threshold: 0.6 });
+  document.querySelectorAll("[data-count]").forEach(function (el) { countIO.observe(el); });
+
+  /* ---- pointer-following colour reveal in the hero ---- */
+  var paint = document.getElementById("colourPaint");
+  var hero = document.querySelector(".hero");
+  if (paint && hero && !calm) {
+    hero.addEventListener("pointermove", function (e) {
+      var r = hero.getBoundingClientRect();
+      paint.style.setProperty("--mx", ((e.clientX - r.left) / r.width * 100) + "%");
+      paint.style.setProperty("--my", ((e.clientY - r.top) / r.height * 100) + "%");
+    }, { passive: true });
+  }
+
+  /* ---- soft light inside the cards ---- */
+  document.querySelectorAll(".demo-card").forEach(function (card) {
+    card.addEventListener("pointermove", function (e) {
+      var r = card.getBoundingClientRect();
+      card.style.setProperty("--cx", (e.clientX - r.left) + "px");
+      card.style.setProperty("--cy", (e.clientY - r.top) + "px");
+    }, { passive: true });
+  });
+
+  /* ---- custom cursor ring ---- */
+  var ring = document.querySelector(".cursor");
+  if (ring && !calm && window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+    var rx = 0, ry = 0, tx = 0, ty = 0;
+    window.addEventListener("pointermove", function (e) {
+      tx = e.clientX; ty = e.clientY; ring.classList.add("on");
+    }, { passive: true });
+    document.addEventListener("pointerover", function (e) {
+      var hit = e.target.closest && e.target.closest("a, button, .demo-card");
+      ring.classList.toggle("grow", !!hit);
+    });
+    (function follow() {
+      rx += (tx - rx) * 0.18; ry += (ty - ry) * 0.18;
+      ring.style.transform = "translate3d(" + rx + "px," + ry + "px,0)";
+      requestAnimationFrame(follow);
+    })();
+  }
+
+  /* ---- magnetic button ---- */
+  var magnet = document.getElementById("magnet");
+  if (magnet && !calm) {
+    magnet.addEventListener("pointermove", function (e) {
+      var r = magnet.getBoundingClientRect();
+      var dx = e.clientX - (r.left + r.width / 2);
+      var dy = e.clientY - (r.top + r.height / 2);
+      magnet.style.transform = "translate(" + dx * 0.25 + "px," + dy * 0.35 + "px)";
+    });
+    magnet.addEventListener("pointerleave", function () { magnet.style.transform = ""; });
+  }
+
+  /* ---- everything that depends on scroll position, in one loop ---- */
+  var head    = document.getElementById("site-head");
+  var wheel   = document.getElementById("wheel");
+  var cinema  = document.querySelector(".cinema");
+  var frames  = Array.prototype.slice.call(document.querySelectorAll(".frame"));
+  var bar     = document.getElementById("cineBar");
+  var glow    = document.querySelector(".cinema-sticky .glow");
+  var layers  = Array.prototype.slice.call(document.querySelectorAll(".layer"));
+  var queued  = false;
+
+  function onScroll() {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(function () {
+      queued = false;
+      var y = window.scrollY || window.pageYOffset;
+      var vh = window.innerHeight;
+
+      if (head) head.classList.toggle("stuck", y > 40);
+      if (calm) return;
+
+      if (wheel) {
+        var wr = wheel.getBoundingClientRect();
+        if (wr.bottom > 0 && wr.top < vh) {
+          var p = 1 - (wr.top + wr.height / 2) / (vh + wr.height / 2);
+          wheel.style.setProperty("--spin", (p * 420).toFixed(1));
+        }
+      }
+
+      if (cinema && frames.length) {
+        var cr = cinema.getBoundingClientRect();
+        var total = cr.height - vh;
+        var p2 = total > 0 ? Math.min(Math.max(-cr.top / total, 0), 1) : 0;
+        if (bar) bar.style.setProperty("--p", p2.toFixed(3));
+        if (glow) glow.style.setProperty("--zoom", (0.55 + p2 * 0.85).toFixed(3));
+        var active = Math.min(Math.floor(p2 * frames.length), frames.length - 1);
+        frames.forEach(function (f, i) { f.classList.toggle("on", i === active); });
+      }
+
+      layers.forEach(function (layer) {
+        var host = layer.parentElement.getBoundingClientRect();
+        if (host.bottom < 0 || host.top > vh) return;
+        var pl = (host.top + host.height / 2 - vh / 2) / vh;
+        layer.style.transform = "translate3d(0," + (pl * -(+layer.dataset.speed)) + "%,0)";
+      });
+    });
+  }
+  window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("resize", onScroll, { passive: true });
+  onScroll();
+})();
+</script>
+</body>
+</html>
